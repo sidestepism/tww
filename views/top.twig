@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+    <title>tww</title>
+	<script src="/js/jquery.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js" />
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootswatch/3.1.1/readable/bootstrap.min.css" />
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+	<h2>tww</h2>
+	<ul id="replies">
+		
+	</ul>
+	<form id="tweet-form">
+		<input type="text" id="tweet" placeholder="Tweet" />		
+	</form>
+</body>
+<script>
+  var socket = io("http://localhost:3000");
+
+  var colors = ["#16a085", "#27ae60", "#2980b9", "#8e44ad", "#2c3e50", "#f39c12", "#d35400", "#c0392b", "#1abc9c", "#2ecc71", "#3498db", "#9b59b6", "#34495e", "#f1c40f", "#e67e22", "#e74c3c"];
+
+  $('form').submit(function(){
+    socket.emit('chat message', $('#m').val());
+    $('#m').val('');
+    return false;
+  });
+
+  socket.on('msg', function(msg){
+  	console.log(msg)
+  });
+
+  socket.on('reply', function(msg){
+  	console.log('reply', msg)
+  	$("#replies").append("<li><span style='color: "+colors[(msg.user.id_str+0) % 3]+"; font-weight: bold;'>" + msg.user.screen_name + ": " + msg.text+ "</li>");
+  	if($("#tweet").val() == "")$("#tweet").val("@" + msg.user.screen_name).focus();
+  });
+
+  socket.on('tweet', function(msg){
+  	console.log('reply', msg)
+  	$("#replies").append("<li>" + msg.user.screen_name + ": " + msg.text+ "</li>");
+  });
+
+	$(function() {
+		$("#tweet-form").submit(function() {
+			$("#tweet").attr("readonly", true);
+			socket.emit("post", $("#tweet").val(), function(err) {
+				console.log("err", err);
+				$("#tweet").attr("readonly", false);
+				if(!err){
+					$("#tweet").val("");
+				}
+			});
+		});
+	});
+
+
+</script>
